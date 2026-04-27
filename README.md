@@ -3,7 +3,12 @@
 Source code, data, and scripts for the paper:
 
 > **TMM–RCWA Spectral Fidelity Predicts Physics-Based Transfer Learning Success in Surrogate Modeling of Metal–Insulator–Metal Absorbers**
-> Sang-Bae Choi, Independent Researcher (Republic of Korea)
+> Sang-Bae Choi¹\*, Joonhyub Kim²,³, Chang-Mo Kang²,³\*
+>
+> ¹ Independent Researcher, Busan 46264, Republic of Korea
+> ² Department of Nanomechatronics Engineering, Pusan National University, Busan 46241, Republic of Korea
+> ³ School of Transdisciplinary Engineering, Pusan National University, Busan 46241, Republic of Korea
+> \* Corresponding authors: sbchoi129@gmail.com, fd1kcm@pusan.ac.kr
 
 We study when transfer learning from a low-fidelity simulator (TMM with effective-medium approximation) to a high-fidelity simulator (RCWA) improves neural-network surrogates of metamaterial absorbers. Across three structurally distinct MIM absorbers we find that pre-training benefit is **strongly associated** with TMM–RCWA spectral fidelity, and we provide a small-pilot pre-screening procedure (20–50 RCWA samples).
 
@@ -167,7 +172,7 @@ Random seeds, train/val/test split indices, and per-experiment sample-index list
 @article{choi2026pbtl,
   title   = {TMM--RCWA Spectral Fidelity Predicts Physics-Based Transfer
              Learning Success in Surrogate Modeling of Metal--Insulator--Metal Absorbers},
-  author  = {Choi, Sang-Bae},
+  author  = {Choi, Sang-Bae and Kim, Joonhyub and Kang, Chang-Mo},
   journal = {[journal]},
   year    = {2026}
 }
