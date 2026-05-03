@@ -2,7 +2,7 @@
 
 Source code, data, and scripts for the paper:
 
-> **TMM–RCWA Spectral Fidelity Predicts Physics-Based Transfer Learning Success in Surrogate Modeling of Metal–Insulator–Metal Absorbers**
+> **Physics-Based Transfer Learning for Neural Network Surrogates of Metal–Insulator–Metal Absorbers**
 > Sang-Bae Choi¹\*, Joonhyub Kim²,³, Chang-Mo Kang²,³\*
 >
 > ¹ Independent Researcher, Busan 46264, Republic of Korea
@@ -170,8 +170,8 @@ Random seeds, train/val/test split indices, and per-experiment sample-index list
 
 ```bibtex
 @article{choi2026pbtl,
-  title   = {TMM--RCWA Spectral Fidelity Predicts Physics-Based Transfer
-             Learning Success in Surrogate Modeling of Metal--Insulator--Metal Absorbers},
+  title   = {Physics-Based Transfer Learning for Neural Network Surrogates
+             of Metal--Insulator--Metal Absorbers},
   author  = {Choi, Sang-Bae and Kim, Joonhyub and Kang, Chang-Mo},
   journal = {[journal]},
   year    = {2026}
