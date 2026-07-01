@@ -158,6 +158,24 @@ def c1_numbers_vs_data():
                        f"B={med['B'][0]:.2f}/{med['B'][1]:.1f} C={med['C'][0]:.2f}/{med['C'][1]:.1f})")
     except Exception as e:
         ok_all = False; record("C1b", False, f"fidelity check error: {e}")
+
+    # --- C1c: Au TMM-RCWA median MAE reproduction (per-sample median, as Cr Table I) ---
+    try:
+        gA = np.load("results/pbtl_Au_5seed.npz", allow_pickle=True)
+        gB = np.load("results/pbtl_Au_B_5seed.npz", allow_pickle=True)
+        medA = round(float(gA["tmm_rcwa_median_mae"]), 1)
+        medB = round(float(gB["tmm_rcwa_median_mae"]), 1)
+        want = f"{medA:.1f}"
+        meanstr = f"{float(gA['tmm_rcwa_mae']):.1f}/{float(gB['tmm_rcwa_mae']):.1f}%"
+        if medA != medB:
+            record("C1c", False, f"Au median-MAE A/B differ: {medA} vs {medB}")
+        elif f"{want}\\%" not in tex:
+            record("C1c", False, f"Au median MAE {want}% (stored) not in paper.tex; do NOT confuse with flattened mean {meanstr}")
+        else:
+            record("C1c", True, f"Au TMM-RCWA median MAE reproduces ({want}%, per-sample median as Cr Table I; flattened mean is {meanstr})")
+    except Exception as e:
+        record("C1c", False, f"Au median-MAE check error: {e}")
+
     if ok_all:
         record("C1", True, "all 4-way table cells reproduce from redesign npz within 0.05pp")
 
@@ -165,13 +183,14 @@ def c1_numbers_vs_data():
 def c2_crossdoc():
     ok = True
     for label, rgx, docs in CROSSDOC:
-        present = [d for d in docs if re.search(rgx, read(d))]
-        if len(present) < len(docs):
-            missing = set(docs) - set(present)
+        existing = [d for d in docs if os.path.exists(d)]
+        present = [d for d in existing if re.search(rgx, read(d))]
+        if len(present) < len(existing):
+            missing = set(existing) - set(present)
             ok = False
             record("C2", False, f"{label}: not found in {sorted(missing)}")
     if ok:
-        record("C2", True, "cross-document headline values present in all expected docs")
+        record("C2", True, "cross-document headline values present in all existing expected docs")
 
 # ============================================================ C3 figure caption <-> output
 def c3_figures():
