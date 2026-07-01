@@ -9,11 +9,13 @@ Design:
 """
 from __future__ import annotations
 import sys
-sys.path.insert(0, '/Users/sbchoi129/PINN2/mim_novel')
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
+import src.simulation.materials as _mat; _mat.MATERIAL_MODEL = 'jc'  # corrected J&C constants
 from src.simulation.tmm_struct_a import compute_tmm_batch
 
 # Publication-grade rcParams — UNIFIED across Figures 2–5 (print-size matched)
@@ -34,9 +36,9 @@ plt.rcParams.update({
 })
 
 # ─── Load RCWA data ───
-d = np.load('data/raw/struct_A_vis_500.npz', allow_pickle=True)
+d = np.load('data/raw/struct_A_500_redesign.npz', allow_pickle=True)
 params = d['params'].astype(np.float32)
-rcwa_A = d['A'].astype(np.float32)
+rcwa_A = np.clip(d['A'].astype(np.float32), 0.0, 1.0)  # match training reliability clip
 wavelengths = d['wavelengths'].astype(np.float32)
 
 # ─── Compute TMM for all 500 samples ───
@@ -82,7 +84,7 @@ def plot_panel(ax, sample_idx, title, legend_loc, ymax_pad=0.18):
     ax.set_xlabel('Wavelength (nm)', fontsize=LBL_FS)
     ax.set_ylabel('Absorptance', fontsize=LBL_FS)
     ax.set_title(title, fontsize=TITLE_FS, fontweight='bold', loc='left')
-    ax.set_xlim(380, 780)
+    ax.set_xlim(400, 1800)
     span = ymax_panel - ymin_panel
     ax.set_ylim(ymin_panel - 0.05 * span, ymax_panel + ymax_pad * span)
     ax.tick_params(labelsize=TICK_FS)

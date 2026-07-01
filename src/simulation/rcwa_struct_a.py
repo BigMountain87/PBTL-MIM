@@ -33,12 +33,33 @@ PARAM_NAMES = list(DESIGN_SPACE.keys())
 PARAM_MIN = np.array([DESIGN_SPACE[k]["min"] for k in PARAM_NAMES], dtype=np.float64)
 PARAM_MAX = np.array([DESIGN_SPACE[k]["max"] for k in PARAM_NAMES], dtype=np.float64)
 
-WAVELENGTH = {"start": 380, "stop": 780, "n_pts": 100}
+WAVELENGTH = {"start": 400, "stop": 1800, "n_pts": 100}  # unified grid (redesign)
 
-RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5]}
+# dtype: complex64 ~5x faster, half VRAM, identical absorption to <0.001 pp vs
+# complex128 (see CONVERGENCE_C.md). Use complex128 for exact legacy reproduction.
+# adaptive_order: legacy [5,5] is under-converged for anisotropic patches (A_TE off
+# by up to ~5.7 pp); when True, pick the order per wavelength via adaptive_order().
+RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5], "dtype": torch.complex64,
+                 "adaptive_order": True}
 
 # Small azimuthal perturbation to break symmetry
 _AZI_PERTURB = np.deg2rad(0.01)
+
+
+def adaptive_order(lam_nm, P, Wx, Wy, W2):
+    """Feature-size/anisotropy-adaptive Fourier order for Structure A (same physics
+    as Structure C; see CONVERGENCE_C.md). Driven by the smallest metal/gap feature
+    across both patches and by the top-patch aspect ratio."""
+    ar = max(Wx, Wy) / max(min(Wx, Wy), 1e-9)
+    f_min = min(Wx, Wy, W2, P - Wx, P - Wy, P - W2)
+    hard = (ar >= 2.0) or (f_min < 150.0)
+    if hard:
+        N = 17
+    elif lam_nm < 700.0:
+        N = 13
+    else:
+        N = 9
+    return [N, N]
 
 
 def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
@@ -60,8 +81,9 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
     azi_rad = _AZI_PERTURB if theta_deg > 0.1 else 0.0
 
     Nx, Ny = RCWA_SETTINGS["grid"]
-    order = RCWA_SETTINGS["order"]
-    sim_dtype = torch.complex128
+    use_adaptive = RCWA_SETTINGS.get("adaptive_order", True)
+    fixed_order = RCWA_SETTINGS["order"]
+    sim_dtype = RCWA_SETTINGS.get("dtype", torch.complex64)
 
     eps_metal_all = get_metal_permittivity(wavelengths_nm, metal)
     eps_sio2_all = get_sio2_permittivity(wavelengths_nm)
@@ -84,16 +106,17 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
 
     for i, lam in enumerate(wavelengths_nm):
         freq = 1.0 / lam
+        order = adaptive_order(lam, P, Wx, Wy, W2) if use_adaptive else fixed_order
 
         eps_m = complex(eps_metal_all[i])
         eps_sio2 = float(np.real(eps_sio2_all[i]))
-        eps_tio2 = float(np.real(eps_tio2_all[i]))
+        eps_tio2 = complex(eps_tio2_all[i])  # measured TiO2 is complex (band-edge loss)
 
         eps_top = (geo_top * eps_m + (1.0 - geo_top) * 1.0).to(dtype=sim_dtype, device=device)
         eps_bot = (geo_bot * eps_m + (1.0 - geo_bot) * 1.0).to(dtype=sim_dtype, device=device)
 
         sim = torcwa.rcwa(freq=freq, order=order, L=[P, P],
-                          dtype=sim_dtype, device=device)
+                          dtype=sim_dtype, device=device, stable_eig_grad=False)
 
         sim.add_input_layer(eps=1.0)
         sim.add_output_layer(eps=2.25)

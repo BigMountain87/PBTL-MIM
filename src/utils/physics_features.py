@@ -14,6 +14,7 @@ Each structure instantiates the relevant features from its layer stack.
 """
 
 import numpy as np
+import torch
 from src.simulation.materials import (
     get_sio2_permittivity, get_tio2_permittivity, get_metal_permittivity
 )
@@ -161,7 +162,13 @@ def compute_physics_features_B(params, wavelengths_nm, metal="Cr"):
 # ============================================================
 
 def compute_physics_features_C(params, wavelengths_nm, metal="Cr"):
-    """11 physics features for Structure C."""
+    """LEGACY 11-feature set for Structure C (isotropic-scalar variant only).
+
+    NOTE: the paper's reported Structure-C model uses the 18-feature, dual-
+    polarization v2 set defined INLINE in step0_screen/pbtl_C_v2_redesign.py,
+    NOT this function. This legacy set is retained only for the isotropic-scalar
+    Structure-C replica; do not use it to reproduce the main Structure-C results.
+    """
     N, Nlam = len(params), len(wavelengths_nm)
     P, Wx, Wy = params[:, 0], params[:, 1], params[:, 2]
     t_Cr, d_SiO2 = params[:, 3], params[:, 4]
@@ -245,9 +252,9 @@ def compute_physics_features_A_torch(geo, lam, metal="Cr"):
     feats.append(t1 / sd)
     feats.append(t2 / sd)
     feats.append(t_mid / sd)
-    feats.append(torch.cos(theta_rad))
     feats.append(n_sio2 * d1 / lam)
     feats.append(n_tio2 * d2 / lam)
+    feats.append(torch.cos(theta_rad))
     feats.append(Wy / (Wx + 1e-10))
     feats.append(torch.full_like(P, alpha_m))
 
@@ -263,7 +270,6 @@ def compute_physics_features_B_torch(geo, lam, metal="Cr"):
     Returns:
         (B, 13) tensor
     """
-    import torch
     P, R_out, R_in, R_disk = geo[:, 0], geo[:, 1], geo[:, 2], geo[:, 3]
     t_Cr, d_SiO2 = geo[:, 4], geo[:, 5]
     theta, phi = geo[:, 6], geo[:, 7]
@@ -312,7 +318,6 @@ def compute_physics_features_C_torch(geo, lam, metal="Cr"):
     Returns:
         (B, 11) tensor
     """
-    import torch
     P, Wx, Wy = geo[:, 0], geo[:, 1], geo[:, 2]
     t_Cr, d_SiO2 = geo[:, 3], geo[:, 4]
     theta, phi = geo[:, 5], geo[:, 6]
@@ -363,4 +368,18 @@ PHYS_FEAT_TORCH_FN = {
     "C": compute_physics_features_C_torch,
 }
 
-N_PHYS_FEATURES = {"A": 17, "B": 13, "C": 11}
+# Feature counts per structure.
+# A: 17 features (compute_physics_features_A)
+# B: 13 features (compute_physics_features_B)
+# C: 18 features = 13 base + 5 polarization-specific
+#    The reported Structure-C results use compute_physics_features_C_v2 (defined
+#    inline in the production scripts step0_screen/pbtl_C_v2_redesign.py and the
+#    other pbtl_C_v2_*.py), which returns 18 features. The legacy
+#    compute_physics_features_C in this file returns 11 features and is used ONLY
+#    by the isotropic/scalar Structure-C experiments (the noise-injection replica and
+#    the M4 architecture ablation, e.g. noise_injection_C_redesign.py and
+#    ablation_C_redesign.py); the main dual-polarization Structure-C result uses the
+#    18-feature compute_physics_features_C_v2. PHYS_FEAT_FN["C"] therefore dispatches
+#    the legacy isotropic features and must not be used to reproduce the dual-pol result.
+N_PHYS_FEATURES = {"A": 17, "B": 13, "C": 18}
+N_PHYS_FEATURES_LEGACY_C = 11  # compute_physics_features_C (this file, legacy)

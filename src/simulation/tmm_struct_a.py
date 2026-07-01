@@ -5,7 +5,7 @@ TMM for Structure A: Asymmetric Dual-Dielectric Dual-Cavity MIM.
 Layer stack (7 layers):
   Air | EMA(rect Wx×Wy) | SiO₂(d₁) | Cr_mid(t_mid) | TiO₂(d₂) | EMA(sq W₂) | Cr_mirror(100nm) | Glass
 
-EMA: Maxwell-Garnett linear mixing
+EMA: linear/Wiener (volume-average) mixing
   f_top = (Wx * Wy) / P²
   f_bot = (W₂ / P)²
 """

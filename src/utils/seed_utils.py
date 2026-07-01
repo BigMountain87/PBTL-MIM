@@ -3,7 +3,7 @@ import torch
 import random
 
 def set_global_seed(seed: int):
-    """모든 랜덤 시드를 동일하게 고정."""
+    """Fix all random seeds identically (for reproducibility)."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

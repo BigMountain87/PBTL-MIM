@@ -402,12 +402,12 @@ fig.legend(handles=legend_elements, loc='lower center', ncol=5,
            fontsize=LBL_FS - 1, frameon=True, fancybox=True, shadow=False,
            bbox_to_anchor=(0.5, 0.07))
 
-plt.savefig('/Users/sbchoi129/PINN2/mim_novel/figures/fig0_structure_schematic.pdf',
+plt.savefig('figures/fig0_structure_schematic.pdf',
             bbox_inches='tight', dpi=300)
-plt.savefig('/Users/sbchoi129/PINN2/mim_novel/figures/fig0_structure_schematic.png',
+plt.savefig('figures/fig0_structure_schematic.png',
             bbox_inches='tight', dpi=250)
-plt.savefig('/Users/sbchoi129/PINN2/mim_novel/figures/Figure_1.pdf',
+plt.savefig('figures/Figure_1.pdf',
             bbox_inches='tight', dpi=300)
-plt.savefig('/Users/sbchoi129/PINN2/mim_novel/figures/Figure_1.png',
+plt.savefig('figures/Figure_1.png',
             bbox_inches='tight', dpi=250)
 print('Schematic saved (Type 42 fonts, PNG 250 DPI).')

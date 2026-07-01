@@ -32,9 +32,52 @@ PARAM_MAX = np.array([DESIGN_SPACE[k]["max"] for k in PARAM_NAMES], dtype=np.flo
 
 WAVELENGTH = {"start": 400, "stop": 1800, "n_pts": 100}
 
-RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5]}
+# order: legacy fixed truncation (kept for reproducibility / fallback).
+# adaptive_order: when True, simulate_single picks the Fourier order per wavelength
+# from adaptive_order() below. The legacy [5, 5] is badly under-converged for wide
+# anisotropic patches (errors up to 6-15pp); see CONVERGENCE_C.md.
+# dtype: complex64 is ~5x faster and uses half the VRAM of complex128 on consumer
+# GPUs (poor FP64 throughput) and gives IDENTICAL absorption to <0.001 pp -- validated
+# on the canonical case at N=9/13/17 (see CONVERGENCE_C.md). Set complex128 only for
+# exact legacy reproduction of the original struct_C_500.npz labels.
+RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5], "adaptive_order": True,
+                 "dtype": torch.complex64}
 
 _AZI_PERTURB = np.deg2rad(0.01)
+
+
+def adaptive_order(lam_nm, P, Wx, Wy):
+    """Feature-size- and wavelength-adaptive Fourier order for Structure C.
+
+    Calibrated from the convergence study in results/convergence_C (clean
+    normal-incidence cases; see CONVERGENCE_C.md). Convergence is governed by the
+    SMALLEST feature -- the narrowest metal strip or air gap -- and by aspect ratio,
+    NOT primarily by wavelength: the canonical narrow-gap patch (Wy=90, gap_x=100) is
+    still un-converged at 1000 nm (N=13: 0.608 -> N=19: 0.524), whereas the benign
+    square (200 nm features) converges by N=9. Whichever E-field component crosses a
+    sharp/narrow metal edge converges slowly (Gibbs).
+
+    Policy:
+      hard case  (AR >= 2  OR  smallest feature < 150 nm)            -> N = 17
+      benign, short lambda (< 700 nm)                                 -> N = 13
+      benign, long  lambda (>= 700 nm)                                -> N = 9
+
+    Residual note: N=17 (1225 harmonics, ~8 GB) is the best-effort cap that fits a
+    shared 16 GB GPU. It lands within ~0.3-0.5 pp for moderate cases, but the
+    narrowest-feature / extreme-AR patches are NOT fully converged even at N=17-19
+    (true value needs N>=21, which OOMs at grid 64 / complex128). This is a documented
+    limitation, not a guarantee of <0.5 pp everywhere.
+    """
+    ar = max(Wx, Wy) / max(min(Wx, Wy), 1e-9)
+    f_min = min(Wx, Wy, P - Wx, P - Wy)        # narrowest metal strip or air gap (nm)
+    hard = (ar >= 2.0) or (f_min < 150.0)
+    if hard:
+        N = 17
+    elif lam_nm < 700.0:
+        N = 13
+    else:
+        N = 9
+    return [N, N]
 
 
 def _build_sim(freq, P, Wx, Wy, t_Cr, d_SiO2, eps_m, eps_sio2,
@@ -50,8 +93,10 @@ def _build_sim(freq, P, Wx, Wy, t_Cr, d_SiO2, eps_m, eps_sio2,
     geo = torcwa.rcwa_geo.rectangle(Wx=Wx, Wy=Wy, Cx=P/2, Cy=P/2)
     eps_pat = (geo * eps_m + (1.0 - geo) * 1.0).to(dtype=sim_dtype, device=device)
 
+    # stable_eig_grad=False: we don't backprop through the solver for dataset
+    # generation, so skip torcwa's autograd-stable eigendecomposition path.
     sim = torcwa.rcwa(freq=freq, order=order, L=[P, P],
-                      dtype=sim_dtype, device=device)
+                      dtype=sim_dtype, device=device, stable_eig_grad=False)
 
     sim.add_input_layer(eps=1.0)
     sim.add_output_layer(eps=2.25)
@@ -86,8 +131,9 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
         _AZI_PERTURB if theta_deg > 0.1 else 0.0)
 
     Nx, Ny = RCWA_SETTINGS["grid"]
-    order = RCWA_SETTINGS["order"]
-    sim_dtype = torch.complex128
+    use_adaptive = RCWA_SETTINGS.get("adaptive_order", True)
+    fixed_order = RCWA_SETTINGS["order"]
+    sim_dtype = RCWA_SETTINGS.get("dtype", torch.complex64)
 
     eps_metal_all = get_metal_permittivity(wavelengths_nm, metal)
     eps_sio2_all = get_sio2_permittivity(wavelengths_nm)
@@ -104,24 +150,24 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
         freq = 1.0 / lam
         eps_m = complex(eps_metal_all[i])
         eps_sio2 = float(np.real(eps_sio2_all[i]))
+        order = adaptive_order(lam, P, Wx, Wy) if use_adaptive else fixed_order
 
-        # TE simulation (Ey = 1)
-        sim_te = _build_sim(freq, P, Wx, Wy, t_Cr, d_SiO2, eps_m, eps_sio2,
-                            theta_rad, phi_rad, [0.0, 1.0], order, Nx, Ny,
-                            sim_dtype, device)
-        r_te, t_te = compute_RT_batch(sim_te, order)
+        # The global S-matrix is polarization-independent, so ONE solve serves both
+        # TE and TM (compute_RT_batch / _TM extract different S-matrix elements).
+        # This halves the per-wavelength cost vs building a separate sim per pol.
+        sim = _build_sim(freq, P, Wx, Wy, t_Cr, d_SiO2, eps_m, eps_sio2,
+                         theta_rad, phi_rad, [0.0, 1.0], order, Nx, Ny,
+                         sim_dtype, device)
+        r_te, t_te = compute_RT_batch(sim, order)
         A_te[i] = 1.0 - r_te - t_te
         R_te[i] = r_te
         T_te[i] = t_te
 
-        # TM simulation (Ex = 1)
-        sim_tm = _build_sim(freq, P, Wx, Wy, t_Cr, d_SiO2, eps_m, eps_sio2,
-                            theta_rad, phi_rad, [1.0, 0.0], order, Nx, Ny,
-                            sim_dtype, device)
-        r_tm, t_tm = compute_RT_batch_TM(sim_tm, order)
+        r_tm, t_tm = compute_RT_batch_TM(sim, order)
         A_tm[i] = 1.0 - r_tm - t_tm
         R_tm[i] = r_tm
         T_tm[i] = t_tm
+        del sim
 
     return A_te, R_te, T_te, A_tm, R_tm, T_tm
 

@@ -32,10 +32,33 @@ PARAM_MAX = np.array([DESIGN_SPACE[k]["max"] for k in PARAM_NAMES], dtype=np.flo
 
 WAVELENGTH = {"start": 400, "stop": 1800, "n_pts": 100}
 
-RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5]}
+# dtype: complex64 ~5x faster, half VRAM, identical absorption to <0.001 pp vs
+# complex128 (see CONVERGENCE_C.md). Use complex128 for exact legacy reproduction.
+# adaptive_order: legacy [5,5] is under-converged (A_TE off by up to ~6.8 pp for
+# large-period ring-disks); when True, pick the order per wavelength via adaptive_order().
+RCWA_SETTINGS = {"grid": (64, 64), "order": [5, 5], "dtype": torch.complex64,
+                 "adaptive_order": True}
 
 # Small azimuthal perturbation to break symmetry and avoid singular matrices
 _AZI_PERTURB = np.deg2rad(0.01)
+
+
+def adaptive_order(lam_nm, P):
+    """P/lambda-adaptive Fourier order for Structure B (ring-disk). Convergence is
+    driven by the number of diffraction channels (P/lambda) and the staircased curved
+    edges, NOT by anisotropy. Calibrated from B_big(P=750) needing ~N=17 at short
+    lambda vs B_sml(P=400) ~N=13 (see CONVERGENCE_C.md).
+
+    Residual note: large-period ring-disks at short lambda are still not fully
+    converged at N=17 (Richardson suggests N>=21); documented, not eliminated."""
+    pl = P / lam_nm
+    if pl >= 1.3:
+        N = 17
+    elif pl >= 0.8:
+        N = 13
+    else:
+        N = 9
+    return [N, N]
 
 
 def _make_ring_disk_geometry(P, R_out, R_in, R_disk, Nx, Ny):
@@ -72,8 +95,9 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
         _AZI_PERTURB if theta_deg > 0.1 else 0.0)
 
     Nx, Ny = RCWA_SETTINGS["grid"]
-    order = RCWA_SETTINGS["order"]
-    sim_dtype = torch.complex128
+    use_adaptive = RCWA_SETTINGS.get("adaptive_order", True)
+    fixed_order = RCWA_SETTINGS["order"]
+    sim_dtype = RCWA_SETTINGS.get("dtype", torch.complex64)
 
     eps_metal_all = get_metal_permittivity(wavelengths_nm, metal)
     eps_sio2_all = get_sio2_permittivity(wavelengths_nm)
@@ -87,13 +111,14 @@ def simulate_single(params, wavelengths_nm, metal="Cr", device=None):
 
     for i, lam in enumerate(wavelengths_nm):
         freq = 1.0 / lam
+        order = adaptive_order(lam, P) if use_adaptive else fixed_order
         eps_m = complex(eps_metal_all[i])
         eps_sio2 = float(np.real(eps_sio2_all[i]))
 
         eps_pat = (geo * eps_m + (1.0 - geo) * 1.0).to(dtype=sim_dtype, device=device)
 
         sim = torcwa.rcwa(freq=freq, order=order, L=[P, P],
-                          dtype=sim_dtype, device=device)
+                          dtype=sim_dtype, device=device, stable_eig_grad=False)
 
         sim.add_input_layer(eps=1.0)
         sim.add_output_layer(eps=2.25)

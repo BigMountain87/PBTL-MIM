@@ -1,7 +1,9 @@
 # src/models/tmm_nn.py
 """
-TMM+NN surrogate models for Step 0 screening.
-Simplified to M0 (Baseline ANN) and M7 (TMM+NN+sequential logit) for quick comparison.
+LEGACY Step-0 screening models (M0 baseline ANN, M7 TMM+NN sequential logit) for quick
+comparison. NOTE: the paper's reported models are the ResNet-256-4 (4 residual blocks,
+LayerNorm, SiLU, sigmoid R head, A=1-R) defined inline in the production drivers
+step0_screen/pbtl_{A,B}_redesign.py and pbtl_C_v2_redesign.py, NOT this module.
 """
 
 import torch
