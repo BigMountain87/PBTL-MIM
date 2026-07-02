@@ -10,7 +10,7 @@ real(kz) small relative to the medium index) at oblique incidence. Such an order
 true diffraction efficiency -> 0, but the RCWA solve inflates it, producing R+T >> 1
 (the source of the unphysical negative A in struct_C_500.npz at oblique incidence;
 e.g. row 186 gave R=9.44). We exclude orders whose propagation cosine
-real(kz_norm)/n_medium is below COS_MIN (i.e. diffraction angle > ~78 deg) from the
+real(kz_norm)/n_medium is below COS_MIN (i.e. diffraction angle > ~84 deg) from the
 power sum, separately for the reflection (input) and transmission (output) media. At
 normal incidence such orders carry ~0 polarization weight, so well-behaved cases are
 unchanged; for opaque MIM absorbers (T~0, specular order dominant) the excluded real

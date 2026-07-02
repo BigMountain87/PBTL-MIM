@@ -56,7 +56,7 @@ $n$ & $\Mzero$ & $\Mtl$ & $\Mrand$\\\midrule
 \end{tabular}
 \end{table}
 
-The gap between $\Mtl$ and $\Mrand$ is $0.5$--$4.3$\,pp across training sizes (largest at small $n$), confirming that the TMM pre-training signal contains genuine physics knowledge that random initialization cannot replicate; $\Mrand$ itself tracks $\Mzero$ to within ${\sim}5\%$.
+The gap between $\Mtl$ and $\Mrand$ is $0.5$--$4.3$\,pp across training sizes (largest at small $n$), confirming that the TMM pre-training signal contains genuine physics knowledge that random initialization cannot replicate; $\Mrand$ itself tracks $\Mzero$ to within ${\sim}6\%$.
 
 
 % ============================================================
@@ -150,7 +150,7 @@ We quantify the contribution of each physics feature via permutation importance:
 7 & $W_y/W_x$ & Geometry & $+2.08$\\
 8 & $t_\text{mid}/\delta$ & Skin depth ratio & $+1.90$\\
 9 & $\alpha_\text{metal}$ & Geometry & $+1.51$\\
-10 & $\cos(\varphi_{\text{TiO}_2})$ & Cavity resonance & $+1.36$\\
+10 & $\cos(\varphi_{\text{TiO}_2})$ & Cavity resonance & $+1.36$\\\bottomrule
 \end{tabular}
 \end{table}
 
@@ -164,7 +164,7 @@ Fill Fraction        & 2 & $+9.03\%$  & \textbf{23\%}\\
 Skin Depth Ratio     & 3 & $+5.78\%$  & 15\%\\
 Angle \& Geometry    & 3 & $+4.62\%$  & 12\%\\
 Sub-wavelength Ratio & 3 & $+4.11\%$  & 11\%\\
-Optical Path         & 2 & $+0.72\%$  & $<2\%$\\
+Optical Path         & 2 & $+0.72\%$  & $<2\%$\\\bottomrule
 \end{tabular}
 \end{table}
 
@@ -214,7 +214,7 @@ $n$ & $\Mzero$ & Linear & ResNN & Co-Krig & Co-Krig+phys & $\Mtlphys$ (ours)\\\m
 
 \subsection*{Sparse Co-Kriging with Expanded TMM Budget}
 
-A natural concern is whether Co-Kriging would catch up if given PBTL's $5{,}000$-sample TMM budget. Cubic Gaussian-process (GP) scaling makes a dense fit on $2{,}000+$ samples impractical at this budget in our implementation. We therefore replaced each per-wavelength GP with a sparse variational GP (SVGP, $M=128$ inducing points, $k$-means initialization).
+A natural concern is whether Co-Kriging would close the gap if given PBTL's $5{,}000$-sample TMM budget. Cubic Gaussian-process (GP) scaling makes a dense fit on $2{,}000+$ samples impractical at this budget in our implementation. We therefore replaced each per-wavelength GP with a sparse variational GP (SVGP, $M=128$ inducing points, $k$-means initialization). Like the kernel-sensitivity sweep below, this budget comparison was run on the earlier visible-band Structure-A pipeline and was not regenerated on the corrected pipeline; its absolute MAE values are therefore not comparable to the corrected main-text tables, and it is reported only as a within-experiment budget comparison under a matched protocol.
 
 \begin{table}[htbp]\centering\small
 \caption{Sparse SVGP Co-Kriging with expanded TMM budget (Structure A, $M=128$ inducing points, 3 seeds).}
@@ -242,7 +242,7 @@ To rule out kernel-selection bias, we swept four kernel families and two input c
 \label{sec:si_fs}
 % ============================================================
 
-We re-ran $\Mzero$ and $\Mtl$ with a Full-Spectrum (FS) ResNet whose output is the entire $100$-wavelength absorptance vector at once: input is $\text{norm}(\mathbf{x})$ (no wavelength index), the backbone is identical, and the head is replaced by a single linear layer $\mathbb{R}^{256} \rightarrow \mathbb{R}^{100}$. Pre-training uses the same $5{,}000$-sample TMM library, and fine-tuning uses the same fixed RCWA split; the Full-Spectrum ablation is run over $3$ seeds.
+We re-ran $\Mzero$ and $\Mtl$ with a Full-Spectrum (FS) ResNet whose output is the entire $100$-wavelength absorptance vector at once: input is $\text{norm}(\mathbf{x})$ (no wavelength index), the backbone is a matched pre-norm variant of the main ResNet, and the head is a two-layer map $\mathbb{R}^{256}\rightarrow\mathbb{R}^{256}\rightarrow\mathbb{R}^{100}$ (SiLU between layers) predicting the full absorptance vector. Pre-training uses the same $5{,}000$-sample TMM library, and fine-tuning uses the same fixed RCWA split; the Full-Spectrum ablation is run over $3$ seeds.
 
 \begin{table}[htbp]\centering\small
 \caption{Architecture sensitivity: per-wavelength vs.\ Full-Spectrum (FS) ResNet (Structure A). The per-wavelength columns reproduce the main-text $10$-seed Structure-A result; the Full-Spectrum columns are a $3$-seed ablation trained on the same fixed split.}
@@ -266,7 +266,7 @@ The per-wavelength architecture outperforms FS at every training size: across bo
 \label{sec:si_au_b}
 % ============================================================
 
-To test whether the Cr-vs-Au comparison generalizes beyond Structure~A, we additionally ran the 4-way protocol on Structure~B using corrected Johnson--Christy Au optical constants ($500$ targeted Au RCWA samples, $499$ finite and $419$ reliable after the documented physicality filter ($A\in[-0.005,1.005]$ at every wavelength, after which $A$ and $R$ are clipped to $[0,1]$), $2{,}000$ Au TMM pre-training samples, $5$ seeds per condition; the larger Au-B discard than Au-A reflects gold's stronger oblique-incidence grazing-order sensitivity, Supplementary Section~S16). After reserving $40$ test and $40$ validation samples, the training pool contains $339$ Au RCWA samples. The Au Structure-B experiment uses gold's native visible band ($380$--$780$\,nm), where its plasmonic resonance lies, so it probes \emph{material} rather than band generalization.
+To test whether the Cr-vs-Au comparison generalizes beyond Structure~A, we additionally ran the 4-way protocol on Structure~B using corrected Johnson--Christy Au optical constants ($500$ targeted Au RCWA samples, $499$ finite and $419$ reliable after the documented physicality filter ($A\in[-0.005,1.005]$ at every wavelength, after which $A$ and $R$ are clipped to $[0,1]$), $2{,}000$ Au TMM pre-training samples, $5$ seeds per condition; the larger discard for Au-B than for Au-A reflects gold's stronger oblique-incidence grazing-order sensitivity, Supplementary Section~S16). After reserving $40$ test and $40$ validation samples, the training pool contains $339$ Au RCWA samples. The Au Structure-B experiment uses gold's native visible band ($380$--$780$\,nm), where its plasmonic resonance lies, so it probes \emph{material} rather than band generalization.
 
 \begin{table}[htbp]\centering\small
 \caption{Corrected 4-way model comparison on Au/SiO$_2$ Structure~B (mean $\pm$ std, 5 seeds) on gold's visible band ($380$--$780$\,nm). \emph{TL benefit} is the marginal effect of weight-level transfer alone, $(1 - \MAE_{\Mtl}/\MAE_{\Mzero}) \times 100\%$ ($\Mtl$ vs.\ $\Mzero$, both \emph{without} physics features). On the corrected data the benefit is positive at every training size.}
@@ -347,7 +347,7 @@ C-TM (Dual-Pol)  & 0.0054 & 0.0234 & 78.5\%\\\bottomrule
 \label{sec:si_inverse}
 % ============================================================
 
-We attempted inverse design using the trained PBTL surrogate ($\Mtlphys$, Structure~A) with gradient-based optimization. This probe was run on the earlier visible-band ($380$--$780$\,nm, fixed $N{=}5$) surrogate and is reported as a qualitative, preliminary demonstration; the adversarial-gradient failure mode it illustrates is reported as an illustrative example on that superseded visible-band surrogate and was not revalidated on the corrected pipeline. Both RCWA solvers showed significant validation failures:
+We attempted inverse design using the trained PBTL surrogate ($\Mtlphys$, Structure~A) with gradient-based optimization. This probe was run on the earlier visible-band ($380$--$780$\,nm, fixed $N{=}5$) surrogate and is retained as a qualitative, preliminary demonstration; the adversarial-gradient failure mode it illustrates was observed on that superseded visible-band surrogate and was not revalidated on the corrected pipeline. Both RCWA solvers showed significant validation failures:
 
 \begin{table}[htbp]\centering\small
 \caption{Inverse design validation failure analysis.}
@@ -708,7 +708,7 @@ While preparing the response to Reviewer~\#1, the convergence comment (point M7)
 prompted a full audit of the forward-simulation pipeline. The audit identified
 four corrections; because two of them required rebuilding the simulation data, we
 regenerated the complete RCWA dataset for all three structures (A, B, C) and re-ran
-every downstream analysis. Table~\ref{tab:si_changelog} catalogues the corrections,
+every downstream analysis. Table~\ref{tab:si_changelog} catalogs the corrections,
 and Table~\ref{tab:si_table1_corrected} reports the corrected Table~I
 (TMM--RCWA spectral fidelity) against the submitted values. The optical-constant
 correction is the dominant driver of the change.

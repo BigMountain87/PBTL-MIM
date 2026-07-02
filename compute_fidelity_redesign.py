@@ -1,5 +1,5 @@
 """J1 + J2: corrected TMM-RCWA fidelity on REGENERATED data, Mac-analytic (no RCWA).
-J1 -> results/tmm_rcwa_fidelity_redesign.npz  (A/B/C full-band median r & MAE; replaces
+J1 -> results/tmm_rcwa_fidelity_redesign.npz  (A/B/C full-band per-sample r & MAE arrays -- medians recomputed downstream; replaces
       the STALE results/tmm_rcwa_accuracy_fixed.npz as the Table-5 source).
 J2 -> results/subband_fidelity_redesign.npz   (per sub-band r & MAE for B and C; for S14).
 Uses the project's own analytic TMM (jc materials, npz wavelength grid, reliable mask) —
@@ -18,7 +18,7 @@ BANDS = {'full': (400, 1800), 'vis': (400, 780), 'nir1': (780, 1200),
 
 
 def per_sample_r_mae(tmm, rcwa, mask):
-    """median per-sample Pearson r and MAE over masked+finite wavelengths."""
+    """Per-sample Pearson r and MAE arrays over masked+finite wavelengths (medians taken by callers)."""
     cs, ms = [], []
     for i in range(len(rcwa)):
         m = mask[i] & np.isfinite(tmm[i]) & np.isfinite(rcwa[i])
@@ -70,6 +70,10 @@ try:
 except Exception as e:
     from src.simulation.tmm_struct_c import compute_tmm_batch as tmm_ci
     _tc = tmm_ci(pc, wc); tte = ttm = _tc['A_tmm']; cmode = f'iso ({e})'
+print(f"[fidelity] Structure-C TMM mode: {cmode}", flush=True)
+assert cmode == 'aniso', (
+    "Structure-C fell back to ISOTROPIC TMM -- the Table I C row would be wrong. "
+    f"Fix the aniso import before using these numbers ({cmode}).")
 
 
 def c_concat_r_mae(band_lo, band_hi):

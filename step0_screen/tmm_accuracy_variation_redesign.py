@@ -19,7 +19,7 @@ For each noise level:
   - Fine-tune on RCWA n=100 (3 seeds: 42, 123, 777)
   - Report test MAE
 
-Plots TMM accuracy (x-axis) vs TL benefit (y-axis) with 6 data points.
+Reports and saves TMM accuracy vs TL benefit (6 conditions); the figure is made by make_figure4.py.
 """
 import sys, os, time
 # REDESIGN variant of §4.3/W3 Structure-A TMM-noise injection on CORRECTED data

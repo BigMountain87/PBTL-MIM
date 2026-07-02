@@ -20,7 +20,8 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
-PDFLATEX = "/Library/TeX/texbin/pdflatex"
+import shutil
+PDFLATEX = shutil.which("pdflatex") or "/Library/TeX/texbin/pdflatex"
 TOL = 0.05  # pp tolerance for recomputed-vs-printed numbers
 DOCS = ["paper.tex", "supplementary.tex", "cover_letter.tex",
         "reviewer_response_final.md", "reviewer_response_R2_final.md",
@@ -285,7 +286,7 @@ def c7_retired():
     # cover letter, highlights, ANY rebuttal .tex) -- NOT a hardcoded list, which kept
     # omitting files (reviewer_response_R2.tex leaked 29.5%/0.981 because it was never
     # scanned). A file is skipped only if it carries a SUPERSEDED / DO-NOT-SUBMIT banner in
-    # its first 12 lines (knowingly-archived stale file). The response/disclosure .md docs
+    # its first 15 lines (knowingly-archived stale file). The response/disclosure .md docs
     # legitimately discuss old values (cross-doc consistency is C2's job). The supplementary
     # Correction Change-Log section is exempt.
     import glob

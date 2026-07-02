@@ -11,7 +11,7 @@ for k,i in enumerate(order):
     if np.all(np.isfinite(A[i])):
         ax.plot(wl,A[i],color=cmap[k],lw=1.8,label=f'gap = {gaps[i]:.0f} nm')
 ax.set_xlabel('Wavelength (nm)'); ax.set_ylabel('Absorptance'); ax.set_xlim(400,1800)
-ax.set_title('Structure B: spectral evolution vs ring--disk gap',fontsize=10,fontweight='bold',loc='left')
+ax.set_title('Structure B: spectral evolution vs ring–disk gap',fontsize=10,fontweight='bold',loc='left')
 ax.legend(fontsize=7.5,ncol=2,framealpha=0.9); ax.grid(True,alpha=0.3,lw=0.5)
 plt.tight_layout(); plt.savefig('figures/Figure_S3.pdf',bbox_inches='tight',dpi=300); plt.savefig('figures/Figure_S3.png',bbox_inches='tight',dpi=250)
 print('saved Figure_S3; gaps:',sorted([round(float(g),1) for g in gaps]),'A_max:',[round(float(np.nanmax(A[i])),3) for i in order])

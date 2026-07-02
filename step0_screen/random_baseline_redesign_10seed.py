@@ -25,7 +25,7 @@ REDESIGN changes vs legacy random_baseline_10seed.py (mirrors pbtl_A_redesign.py
      identical 5000-sample pretrain budget and identical fine-tune protocol -- the only
      difference is TMM-physics labels vs uniform-random labels;
  (7) output -> results/random_baseline_redesign_10seed.npz;
- (8) device='cpu', torch threads pinned to 2 (shared-GPU parallel-agent etiquette).
+ (8) device auto (cuda if available), torch threads pinned to 2 (shared-GPU parallel-agent etiquette).
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "2")
@@ -48,7 +48,7 @@ from src.utils.physics_features import compute_physics_features_A
 from src.simulation.tmm_struct_a import compute_tmm_batch
 
 ROOT = '.'
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # prefer CPU: parallel agents share one Mac GPU
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # device auto: cuda if available
 print(f"Device: {device}", flush=True)
 
 # ===== Model definitions (same as pbtl_A_redesign.py) =====

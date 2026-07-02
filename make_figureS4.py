@@ -29,7 +29,7 @@ def rep_sample(fn, tmm_mod, dual):
 
 fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.9))
 for ax, (fn, mod, dual, title) in zip(axes, [
-        ('struct_B_500_redesign', 'src.simulation.tmm_struct_b', False, '(a) Structure B (ring--disk)'),
+        ('struct_B_500_redesign', 'src.simulation.tmm_struct_b', False, '(a) Structure B (ring–disk)'),
         ('struct_C_500_redesign', 'src.simulation.tmm_struct_c_aniso', True, '(b) Structure C (TE)')]):
     wl, Arc, Atm, r = rep_sample(fn, mod, dual)
     ax.plot(wl, Arc, color='#0d47a1', lw=2.0, label=f'RCWA ($r={r:+.2f}$)')

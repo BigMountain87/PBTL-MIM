@@ -25,7 +25,7 @@ ax.scatter(r, mae_m0, s=34, facecolors='none', edgecolors='0.5', lw=0.9,
            label=f'$M_0$ (from scratch), $\\rho={rho_m0:+.2f}$')
 ax.scatter(r, mae_tlp, s=40, color='#c62828', alpha=0.85,
            label=f'$M_{{TL+phys}}$, $\\rho={rho_tlp:+.2f}$')
-ax.set_xlabel('Per-sample TMM--RCWA shape correlation $r$')
+ax.set_xlabel('Per-sample TMM–RCWA shape correlation $r$')
 ax.set_ylabel('Per-sample test MAE (%)')
 ax.grid(True, alpha=0.3, lw=0.5)
 ax.legend(fontsize=8, framealpha=0.9, loc='best')

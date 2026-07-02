@@ -248,4 +248,4 @@ os.makedirs('results', exist_ok=True)
 np.savez('results/pbtl_B_redesign_10seed.npz', train_sizes=TRAIN_SIZES, seeds=SEEDS,
          M0=[results[sz]['M0'] for sz in TRAIN_SIZES], M_phys=[results[sz]['M_phys'] for sz in TRAIN_SIZES],
          M_TL=[results[sz]['M_TL'] for sz in TRAIN_SIZES], M_TL_phys=[results[sz]['M_TL+phys'] for sz in TRAIN_SIZES])
-print("Results saved: pbtl_B_10seed.npz", flush=True)
+print("Results saved: pbtl_B_redesign_10seed.npz", flush=True)

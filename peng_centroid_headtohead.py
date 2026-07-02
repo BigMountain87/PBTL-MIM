@@ -10,7 +10,7 @@ structure / condition we compute
   (a) OUR diagnostic  : per-sample Pearson r (shape) + MAE (amplitude) between the
                         low-fidelity TMM-EMA spectrum and the RCWA ground truth,
                         exactly as Table I (S "fidelity") is computed
-                        (median per-sample r, mean MAE, on the `reliable` mask).
+                        (median per-sample r, median per-sample MAE, on the `reliable` mask).
   (b) PENG'S metric   : distance between the SOURCE and TARGET data-distribution
                         centroids in a PCA-reduced spectral space.
 
@@ -351,7 +351,7 @@ for (nm, sigma), b_stored, r_stored in zip(NOISE_LEVELS, tl_benefits, tmm_acc_st
         At = noise_rng.normal(0, sigma, A_tmm_test_clean.shape).astype(np.float32)
         A_tmm_test_noisy = np.clip(A_tmm_test_clean + At, 0, 1)
 
-    # our diagnostic on these 50 test spectra (matches the experiment's flatten-r)
+    # our diagnostic on these 50 test spectra (median per-sample r = the experiment's stored tmm_accuracy; flat-r separate)
     med_r, mean_r, mae, n_diag = our_diagnostic(
         A_tmm_test_noisy.astype(np.float64), A_rcwa_test.astype(np.float64), rel_test)
     r_flat = pearsonr(A_tmm_test_noisy.flatten(), A_rcwa_test.flatten())[0]
@@ -436,7 +436,7 @@ def corr_block_mixed(recs, benefit_key):
 # structures: report at n=50 (paper-emphasized) and across-size mean
 struct_n50, _ = corr_block(struct_recs, "benefit_n50", "our_median_r")
 struct_mean, _ = corr_block(struct_recs, "benefit_mean", "our_median_r")
-# noise: single benefit per level; our r = flatten-r
+# noise: single benefit per level; our r = median per-sample r
 noise_corr, _ = corr_block(noise_recs, "benefit_n50", "our_median_r")
 # combined 9 points: structures at n=50
 combined_corr = corr_block_mixed(all_recs, "benefit_n50")
@@ -463,7 +463,7 @@ for r in records:
     print(f"{r['name']:<14}{r['group']:<10}{ben:>9.2f}{rr:>9.3f}{r['our_MAE']:>10.2f}"
           f"{r['peng_raw_k95']:>12.4f}{r['peng_norm_k95']:>12.4f}{r['peng_raw_k5']:>11.4f}{r['peng_norm_k5']:>11.4f}")
 print("(structures: our_r = median per-sample Pearson r [Table I]; benefit = n=50.  "
-      "noise: our_r = flatten-r [S4.3 tmm_accuracy].)")
+      "noise: our_r = median per-sample r [S4.3 tmm_accuracy].)")
 
 print("\n" + "=" * 100)
 print("CORRELATION OF EACH METRIC WITH MEASURED BENEFIT   (P = Pearson, S = Spearman)")
@@ -526,7 +526,7 @@ ranking_struct_P = sorted(ALL_KEYS, key=lambda k: abs_pears(struct_n50, k), reve
 winner = ranking_all_P[0]
 
 print("\n  " + "-" * 70)
-print(f"  WINNER: our amplitude diagnostic (our_MAE) predicts benefit best.")
+print(f"  WINNER: {winner} predicts benefit best.")
 print(f"    - all 9 combined:        our_MAE {fmt(combined_corr['our_MAE'])}  "
       f"vs best-Peng {best_peng_all} {fmt(combined_corr[best_peng_all])}")
 print(f"    - 3-structure (discrim.): our_MAE {fmt(struct_n50['our_MAE'])}  "

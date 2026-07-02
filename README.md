@@ -6,6 +6,18 @@ This repository contains the source code and data for the paper:
 
 Sang-Bae Choi (Independent Researcher), Joonhyub Kim (Pusan National University), and Chang-Mo Kang (Pusan National University). Submitted to *Photonics and Nanostructures – Fundamentals and Applications*.
 
+## Quick start — reproduce a headline result in one minute
+
+```bash
+# Table I fidelity from the shipped raw data (pure NumPy, no GPU, ~1 min):
+python compute_fidelity_redesign.py
+#   -> A: median r = +0.83, MAE = 7.94%   B: +0.96 / 8.93%   C: +0.65 / 16.94%
+
+# Full mechanical gate: every table/figure/number recomputed from the archives
+# (needs pdflatex on PATH for the compile check):
+python verify_paper.py        # -> RESULT: PASS (all 10 checks)
+```
+
 ## Overview
 
 We present a systematic study of physics-based transfer learning (PBTL), which combines analytically derived physics features with neural-network pre-training on cheap Transfer Matrix Method (TMM) data, followed by fine-tuning on small Rigorous Coupled-Wave Analysis (RCWA) datasets. Experiments on three structurally distinct MIM absorbers reveal when and why cross-fidelity transfer learning helps or fails, and introduce a joint pilot-set *r*-and-MAE diagnostic that estimates the transfer benefit (within the tested MIM settings) before any pre-training.

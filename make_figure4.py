@@ -29,10 +29,10 @@ cs_col = {'A': '#0d47a1', 'B': '#00838f', 'C': '#c62828'}
 fig, axes = plt.subplots(1, 2, figsize=(6.6, 3.0))
 for ax, (xs_n, xs_r, xlab, panel) in zip(
         axes,
-        [(noise_r, rand_r, 'TMM--RCWA shape correlation $r$', '(a)'),
-         (noise_mae, rand_mae, 'TMM--RCWA operating-band MAE (%)', '(b)')]):
+        [(noise_r, rand_r, 'TMM–RCWA shape correlation $r$', '(a)'),
+         (noise_mae, rand_mae, 'TMM–RCWA operating-band MAE (%)', '(b)')]):
     ax.scatter(xs_n, noise_ben, s=42, facecolors='none', edgecolors='0.45',
-               label='Structure A, noise $\\sigma{=}0$--$0.20$', zorder=3)
+               label='Structure A, noise $\\sigma{=}0$–$0.20$', zorder=3)
     ax.scatter([xs_r], [rand_ben], marker='x', s=55, color='k',
                label='Random (zero fidelity)', zorder=3)
     for s, (r, mae, ben) in cs.items():

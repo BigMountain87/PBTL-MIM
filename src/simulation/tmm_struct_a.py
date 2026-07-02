@@ -2,7 +2,7 @@
 """
 TMM for Structure A: Asymmetric Dual-Dielectric Dual-Cavity MIM.
 
-Layer stack (7 layers):
+Layer stack (6 finite layers between semi-infinite air/glass):
   Air | EMA(rect Wx×Wy) | SiO₂(d₁) | Cr_mid(t_mid) | TiO₂(d₂) | EMA(sq W₂) | Cr_mirror(100nm) | Glass
 
 EMA: linear/Wiener (volume-average) mixing
