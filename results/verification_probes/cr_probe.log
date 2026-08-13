@@ -1,0 +1,31 @@
+
+== Cr-A: N=9 designs [4, 21, 28] ==
+  idx4 lam=994: archive=0.9095 N9=0.9095 N13=0.9054 drift=0.0040
+  idx4 lam=1800: archive=0.9655 N9=0.9655 N13=0.9708 drift=0.0054
+  idx21 lam=994: archive=0.9895 N9=0.9895 N13=0.9912 drift=0.0017
+  idx21 lam=1800: archive=0.8685 N9=0.8685 N13=0.8650 drift=0.0035
+  idx28 lam=994: archive=0.5523 N9=0.5524 N13=0.5540 drift=0.0016
+  idx28 lam=1800: archive=0.7566 N9=0.7566 N13=0.7618 drift=0.0052
+  Cr-A worst drift = 0.0054
+
+== Cr-B: N=9 designs [0, 1, 2] ==
+  idx0 lam=994: archive=0.7260 N9=0.7260 N13=0.7305 drift=0.0045
+  idx0 lam=1404: archive=0.6571 N9=0.6571 N13=0.6613 drift=0.0042
+  idx0 lam=1800: archive=0.5703 N9=0.5703 N13=0.5741 drift=0.0038
+  idx1 lam=994: archive=0.9390 N9=0.9390 N13=0.9425 drift=0.0035
+  idx1 lam=1404: archive=0.8755 N9=0.8755 N13=0.8743 drift=0.0012
+  idx1 lam=1800: archive=0.8176 N9=0.8177 N13=0.8021 drift=0.0156
+  idx2 lam=994: archive=0.9379 N9=0.9379 N13=0.9333 drift=0.0046
+  idx2 lam=1404: archive=0.6191 N9=0.6192 N13=0.6115 drift=0.0077
+  idx2 lam=1800: archive=0.3970 N9=0.3971 N13=0.3922 drift=0.0049
+  Cr-B worst drift = 0.0156
+
+== Cr-C: N=9 designs [2, 6, 10] ==
+  idx2 lam=994: archive=0.8379 N9=0.8379 N13=0.8342 drift=0.0037
+  idx2 lam=1800: archive=0.9541 N9=0.9541 N13=0.9594 drift=0.0053
+  idx6 lam=994: archive=0.8749 N9=0.8749 N13=0.8789 drift=0.0040
+  idx6 lam=1800: archive=0.8215 N9=0.8215 N13=0.8306 drift=0.0091
+  idx10 lam=994: archive=0.8173 N9=0.8173 N13=0.8157 drift=0.0016
+  idx10 lam=1800: archive=0.8045 N9=0.8045 N13=0.7994 drift=0.0051
+  Cr-C worst drift = 0.0091
+DONE

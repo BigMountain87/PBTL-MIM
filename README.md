@@ -1,0 +1,137 @@
+# Physics-Based Transfer Learning for Neural Network Surrogates of Metal–Insulator–Metal Absorbers
+
+This repository contains the source code and data for the paper:
+
+**"Physics-Based Transfer Learning for Neural Network Surrogates of Metal–Insulator–Metal Absorbers"**
+
+Sang-Bae Choi (Independent Researcher), Joonhyub Kim (Pusan National University), and Chang-Mo Kang (Pusan National University), *Photonics and Nanostructures – Fundamentals and Applications* (2026), article 101617.
+
+**Scope.** This repository holds the simulation and training source code, the
+raw and derived datasets, the trained model checkpoints, and the analysis
+scripts that recompute the reported results. The manuscript text and the
+published figures are not redistributed here; they are available from the
+journal.
+
+## Quick start — reproduce a headline result in one minute
+
+```bash
+# Table I fidelity from the shipped raw data (pure NumPy, no GPU, ~1 min):
+python compute_fidelity_redesign.py
+#   -> A: median r = +0.83, MAE = 7.94%   B: +0.96 / 8.93%   C: +0.65 / 16.94%
+
+# Independent verification probes (regeneration + independent solver):
+python verify_regen_sample.py
+python verify_independent_solver.py
+```
+
+## Verification record
+
+[`VERIFICATION.md`](VERIFICATION.md) records an independent post-acceptance
+verification pass: every reference checked against its source article, every
+table and in-text number recomputed from the archived result files, and the
+model-checkpoint provenance and reproducibility bounds. No result or
+conclusion changed; the citation, bibliographic, and rounding corrections it
+identified are itemized there.
+
+## Trained model checkpoints
+
+Pre-trained (TMM-stage) weights are in [`release_models/`](release_models/), with
+per-file provenance, checksums, and a record of which checkpoints could not be
+preserved, in [`release_models/README.md`](release_models/README.md) and
+[`MODEL_MANIFEST.md`](MODEL_MANIFEST.md).
+
+Reproducibility does not depend on them: every driver script regenerates its own
+pre-training stage. Note that TMM pre-training is not bit-reproducible across runs
+or machines, so regenerated weights differ slightly from the archived ones — an
+independent re-training check found from-scratch models reproduce bit-exactly and
+transfer-learned models agree to within ~0.1 pp.
+
+## Overview
+
+We present a systematic study of physics-based transfer learning (PBTL), which combines analytically derived physics features with neural-network pre-training on cheap Transfer Matrix Method (TMM) data, followed by fine-tuning on small Rigorous Coupled-Wave Analysis (RCWA) datasets. Experiments on three structurally distinct MIM absorbers reveal when and why cross-fidelity transfer learning helps or fails, and introduce a joint pilot-set *r*-and-MAE diagnostic that estimates the transfer benefit (within the tested MIM settings) before any pre-training.
+
+## Reproducing the paper
+
+All reported results are produced by the **`*_redesign`** scripts on the corrected pipeline. Run every script **from the repository root** (paths are repo-relative).
+
+```bash
+# 1. Cross-structure TMM–RCWA fidelity (Table I): reproduces A 0.83/7.9, B 0.96/8.9, C 0.65/16.9
+python compute_fidelity_redesign.py
+
+# 2. 4-way model comparison (Tables 3–5) — Structures A, B, C
+python step0_screen/pbtl_A_redesign.py
+python step0_screen/pbtl_B_redesign.py
+python step0_screen/pbtl_C_v2_redesign.py
+```
+
+The corrected RCWA datasets (`data/raw/struct_{A,B,C}_500_redesign.npz`) and result archives (`results/*.npz`) are included, so the analysis scripts run without re-simulating. Regenerating the RCWA data from scratch requires a CUDA GPU and `torcwa`.
+
+## Repository structure
+
+```
+PBTL-MIM/
+├── src/
+│   ├── models/          # NN architectures (the paper model is ResNet-256-4; tmm_nn.py is a legacy baseline)
+│   ├── simulation/      # RCWA + TMM engines; tmm_struct_c_aniso.py is the paper's anisotropic Structure-C TMM
+│   ├── training/        # trainer.py serves the TMM-as-input baseline only; the *_redesign drivers train the paper models
+│   └── utils/           # physics features, data utilities, seed management
+├── step0_screen/        # main experiment + ablation drivers (the *_redesign scripts produce the reported numbers)
+├── compute_fidelity_redesign.py   # Table I cross-structure fidelity
+├── peng_centroid_headtohead.py    # S15 diagnostic head-to-head comparison
+├── verify_regen_sample.py         # archive-vs-regeneration spot check
+├── verify_independent_solver.py   # independent-solver (grcwa) cross-check
+├── data/raw/            # corrected RCWA datasets (*_redesign.npz)
+├── results/             # result archives (*.npz)
+└── release_models/      # trained checkpoints (see MODEL_MANIFEST.md)
+```
+
+## Requirements
+
+- Python 3.8+
+- PyTorch 2.0+ (the drivers use `torch.load(..., weights_only=True)`)
+- NumPy, SciPy (Matplotlib only for the optional plotting paths in a few drivers)
+- [torcwa](https://github.com/kch3782/torcwa) (GPU-accelerated RCWA) — only needed to regenerate RCWA data
+- CUDA-capable GPU (only for RCWA simulation; analysis reproduction is CPU-only)
+
+```bash
+pip install torch numpy scipy matplotlib
+pip install torcwa   # optional, for RCWA regeneration
+```
+
+## Three MIM structures
+
+| Structure | Geometry | Parameters | Dominant physics |
+|-----------|----------|------------|------------------|
+| A | Asymmetric dual-cavity (SiO₂ + TiO₂) | 10 | Fabry–Pérot interference |
+| B | Ring–disk resonator | 8 | Fano resonance (ring–disk near-field coupling) |
+| C | Dual-polarization rectangular patch | 7 | Polarization-dependent response |
+
+All three share a 100 nm Cr ground mirror; absorptance is evaluated on the unified 400–1800 nm band (100 points). Optical constants use measured Johnson–Christy data for Cr and Au, Malitson SiO₂, and Siefke TiO₂.
+
+## Key results
+
+- Physics features reduce MAE by 4–30% across all three Cr structures.
+- Weight-level TMM pre-training is **positive for every structure and training size** but strongly **fidelity-graded**: +49.7% (Structure A, n=50) down to +9.7% (Structure C, n=350), the gradient tracking operating-band TMM–RCWA MAE.
+- A **joint pilot-set diagnostic** (median TMM–RCWA correlation *r* **and** median operating-band MAE) predicts the transfer benefit, with the **absolute MAE component ordering the benefit where shape correlation alone mis-ranks it** (controlled noise: |Pearson| 0.98 for MAE vs 0.81 for *r*). A single-number *r* threshold is insufficient — Structure B has the **highest** *r* (0.96) yet a smaller benefit than A.
+- Genuine **negative transfer** is reached only by driving source fidelity low enough — near zero for the high-fidelity Structure A, but already at moderate noise for the lower-fidelity B and C (+47% → −58% in the controlled Structure-A sweep).
+- A corrected Au/SiO₂ cross-material check confirms positive weight-level transfer for both Structures A (up to +38%) and B (up to +28%).
+
+## Correction note (2026-06)
+
+A pre-decision audit identified and corrected four methodological issues (Fourier-truncation convergence; Johnson–Christy / Siefke optical constants; a wavelength-grid mismatch in the Table-I fidelity script; and the Structure-C parameter-bounds normalization). The complete RCWA dataset was regenerated and every downstream result re-run by the `*_redesign` scripts; the cross-structure fidelity above is produced by `compute_fidelity_redesign.py`. On the corrected data the weight-transfer benefit is **positive for all three structures** — the earlier B/C natural-negative-transfer taxonomy did not survive and was removed; negative transfer is retained only as a controlled low-fidelity result. Per-correction magnitudes are tabulated in the Supplementary change-log (Section S19). Superseded pre-correction scripts are preserved in `obsolete/` and are not part of the release pipeline.
+
+## Citation
+
+```bibtex
+@article{choi2026pbtl,
+  title={Physics-Based Transfer Learning for Neural Network Surrogates of Metal--Insulator--Metal Absorbers},
+  author={Choi, Sang-Bae and Kim, Joonhyub and Kang, Chang-Mo},
+  journal={Photonics and Nanostructures -- Fundamentals and Applications},
+  year={2026},
+  note={Submitted}
+}
+```
+
+## License
+
+MIT License

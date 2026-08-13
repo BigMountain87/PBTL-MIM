@@ -1,0 +1,8 @@
+Au-B N=13 designs: [3, 9, 11]
+  idx3 lam=651: archive=0.3519 N13=0.3526 N17=0.3368 drift=0.0158
+  idx3 lam=780: archive=0.1449 N13=0.1447 N17=0.2252 drift=0.0805
+  idx9 lam=651: archive=0.0836 N13=0.0835 N17=0.0911 drift=0.0075
+  idx9 lam=780: archive=0.1951 N13=0.1951 N17=0.1802 drift=0.0149
+  idx11 lam=651: archive=0.3141 N13=0.3142 N17=0.2922 drift=0.0220
+  idx11 lam=780: archive=0.2256 N13=0.2258 N17=0.4775 drift=0.2518
+DONE
