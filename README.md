@@ -19,6 +19,9 @@ journal.
 python compute_fidelity_redesign.py
 #   -> A: median r = +0.83, MAE = 7.94%   B: +0.96 / 8.93%   C: +0.65 / 16.94%
 
+# Pilot-set bootstrap precision (reproduces the "Pilot-set validation" numbers):
+python pilot_bootstrap_redesign.py
+
 # Independent verification probes (regeneration + independent solver):
 python verify_regen_sample.py
 python verify_independent_solver.py
@@ -77,6 +80,7 @@ PBTL-MIM/
 │   └── utils/           # physics features, data utilities, seed management
 ├── step0_screen/        # main experiment + ablation drivers (the *_redesign scripts produce the reported numbers)
 ├── compute_fidelity_redesign.py   # Table I cross-structure fidelity
+├── pilot_bootstrap_redesign.py    # pilot-set bootstrap precision (r and MAE)
 ├── peng_centroid_headtohead.py    # S15 diagnostic head-to-head comparison
 ├── verify_regen_sample.py         # archive-vs-regeneration spot check
 ├── verify_independent_solver.py   # independent-solver (grcwa) cross-check
