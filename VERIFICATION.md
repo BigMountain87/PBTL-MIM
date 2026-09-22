@@ -203,6 +203,32 @@ class-wide magnitude (N9→N13 shifts of 0.21-0.40 at 780 nm on all three
 probed designs), and Au-B designs span 0.02-0.25 at 650-780 nm depending on
 where each design's resonance falls.
 
+**Order x raster convergence ladder (2026-09-22).** To test whether a higher
+fixed order would give a converged reference for the plasmonic-band cells, three
+test-split Au-B designs (the two largest periods, P = 794 and 789 nm, and a
+mid-period design, P = 511 nm) were re-solved at 780 and 650 nm at every order
+N = 13, 17, 19, 21, 23 on both the 64x64 raster of the archive and a 128x128
+raster (`verify_au_order_ladder.py`; log and per-cell values in
+`results/verification_probes/aub_order_raster_ladder.{log,json}`; N = 25 exceeds
+the 16 GB of the GPU used). The sequence does not settle. Over N = 17-23 and
+both rasters the absorptance of the same cell spans 0.19 (P = 794 nm, 780 nm:
+0.70-0.89), 0.15 (P = 511 nm, 780 nm: 0.57-0.73) and 0.05-0.07 at 650 nm and
+for the P = 789 nm design, with no monotone trend and with the two rasters
+disagreeing at N = 23 by up to 0.05. The archived value lies inside that band
+for three of the six cells and outside it for the other three. The
+truncation uncertainty of these cells is therefore not resolvable by raising
+the order within this memory budget: the band-edge estimate given above
+("up to ~0.25") is confirmed as a floor, not a ceiling, and a fully converged
+reference for the Au-B plasmonic band would need a different treatment (a
+higher-memory solver, or a formulation suited to periods close to the
+wavelength, P/lambda ~ 1, where diffraction-order thresholds make Fourier
+truncation converge slowly). No archived value was changed. Because this
+prevents the "corrected-label" measurement described in the previous
+paragraph from being carried out with the released solver, the impact
+statement above remains an estimate; the ladder narrows what can be claimed
+about it in one direction only: the per-cell deviations at the band edge are
+at least as large as stated.
+
 **Regeneration comparison (sampled, 2026-08-09).** Re-running 20 archived
 designs per dataset through the released code in the current environment
 (torch 2.9.1; archives generated under torch 2.5.1) reproduces the Cr

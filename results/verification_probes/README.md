@@ -10,6 +10,9 @@ their own seeds/design indices, so every row below is reproducible).
 - `aub_n21.log` — Au-B N=17 vs N=21 (is N=17 itself converged for gold?)
 - `au_n13_probe.log` — Au-B N=13 class, N=13 vs N=17
 - `cr_probe.log` — matched Cr control (A/B/C low-order cells, N=9 vs N=13)
+- `aub_order_raster_ladder.log` / `.json` — Au-B order x raster convergence ladder
+  (2026-09-22; `verify_au_order_ladder.py`): three test-split designs, 650 and 780 nm,
+  N = 13/17/19/21/23 at 64x64 and 128x128 rasters, each solve in a fresh process
 
 ## Transcribed (original stdout lost to a session restart)
 
