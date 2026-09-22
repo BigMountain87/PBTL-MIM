@@ -65,9 +65,15 @@ python compute_fidelity_redesign.py
 python step0_screen/pbtl_A_redesign.py
 python step0_screen/pbtl_B_redesign.py
 python step0_screen/pbtl_C_v2_redesign.py
+
+# 3. Au/SiO2 cross-material check (Table 5 in the article; Supplementary Table S9)
+python pbtl_Au_A_500.py
+python pbtl_Au_B_500.py
 ```
 
-The corrected RCWA datasets (`data/raw/struct_{A,B,C}_500_redesign.npz`) and result archives (`results/*.npz`) are included, so the analysis scripts run without re-simulating. Regenerating the RCWA data from scratch requires a CUDA GPU and `torcwa`.
+The corrected RCWA datasets (`data/raw/struct_{A,B,C}_500_redesign.npz`, `data/raw/struct_{A,B}_Au_500_jc.npz`) and result archives (`results/*.npz`) are included, so the analysis scripts run without re-simulating. Regenerating the RCWA data from scratch requires a CUDA GPU and `torcwa`; the Au datasets can be regenerated with `gen_au_redesign.py` (or its parallel/resumable variant `gen_au_par.py` + `merge_au_par.py`). `AU_SMOKE=1` runs a reduced pass of either Au script (1 seed, 1 training size, fewer epochs) for a fast sanity check; it never overwrites the headline result files.
+
+`step0_screen/pbtl_Au_5seed.py` is a **pre-correction** script kept only for provenance — it reads a dataset (`struct_A_Au_350.npz`) that predates the Johnson–Christy correction and is not part of this release. It is not part of the reproduction pipeline; use `pbtl_Au_A_500.py` / `pbtl_Au_B_500.py` above.
 
 ## Repository structure
 
@@ -84,7 +90,12 @@ PBTL-MIM/
 ├── peng_centroid_headtohead.py    # S15 diagnostic head-to-head comparison
 ├── verify_regen_sample.py         # archive-vs-regeneration spot check
 ├── verify_independent_solver.py   # independent-solver (grcwa) cross-check
-├── data/raw/            # corrected RCWA datasets (*_redesign.npz)
+├── pbtl_Au_A_500.py      # Au/SiO2 cross-material check, Structure A (Table 5)
+├── pbtl_Au_B_500.py      # Au/SiO2 cross-material check, Structure B (Supplementary S9)
+├── gen_au_redesign.py    # regenerates the Au RCWA datasets (corrected J&C constants)
+├── gen_au_par.py         # parallel/resumable variant of gen_au_redesign.py
+├── merge_au_par.py       # merges gen_au_par.py's tagged output shards
+├── data/raw/            # corrected RCWA datasets (*_redesign.npz, *_Au_500_jc.npz)
 ├── results/             # result archives (*.npz)
 └── release_models/      # trained checkpoints (see MODEL_MANIFEST.md)
 ```
@@ -118,7 +129,7 @@ All three share a 100 nm Cr ground mirror; absorptance is evaluated on the unifi
 - Weight-level TMM pre-training is **positive for every structure and training size** but strongly **fidelity-graded**: +49.7% (Structure A, n=50) down to +9.7% (Structure C, n=350), the gradient tracking operating-band TMM–RCWA MAE.
 - A **joint pilot-set diagnostic** (median TMM–RCWA correlation *r* **and** median operating-band MAE) predicts the transfer benefit, with the **absolute MAE component ordering the benefit where shape correlation alone mis-ranks it** (controlled noise: |Pearson| 0.98 for MAE vs 0.81 for *r*). A single-number *r* threshold is insufficient — Structure B has the **highest** *r* (0.96) yet a smaller benefit than A.
 - Genuine **negative transfer** is reached only by driving source fidelity low enough — near zero for the high-fidelity Structure A, but already at moderate noise for the lower-fidelity B and C (+47% → −58% in the controlled Structure-A sweep).
-- A corrected Au/SiO₂ cross-material check confirms positive weight-level transfer for both Structures A (up to +38%) and B (up to +28%).
+- A corrected Au/SiO₂ cross-material check confirms positive weight-level transfer for both Structures A (up to +38%) and B (up to +28%); see [`VERIFICATION.md` §5](VERIFICATION.md#5-au-dataset-wavelength-dependent-truncation-characteristic) for a material-dependent Fourier-truncation characteristic found in the Au datasets post-acceptance — the *sign* of the benefit is robust to it, the reported *magnitudes* carry an estimated uncertainty of a few percentage points.
 
 ## Correction note (2026-06)
 
